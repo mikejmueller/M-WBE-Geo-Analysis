@@ -59,7 +59,6 @@ mwbe_geocode_staten_island <- read_csv("~/Desktop/Data Visualization/Final Assig
   select(vendor_name, city, latitude, longitude)
 
 #Joins geo-coded csvs with original demographic data
-#Csvs are ready to be mapped
 mwbe_map_brooklyn <- mwbe_geocode_brooklyn %>% 
   clean_names() %>% 
   distinct(vendor_name, .keep_all = TRUE) %>% 
@@ -109,8 +108,8 @@ write.csv(mwbe_map_queens, "~/Desktop/Data Visualization/Final Assignment/MWBE_M
 write.csv(mwbe_map_staten_island, "~/Desktop/Data Visualization/Final Assignment/MWBE_Map_Data Sources/MWBE_Map_Locations/MWBE_Map_Locations_Staten_Island.csv")
 
     
-#Data Analysis: Boroughs by Ethnicity 1
-
+#Data Analysis: Boroughs by Ethnicity
+#Counts Borough M/WBEs by ethnicity
 count_brooklyn <- mwbe_map_brooklyn %>%
   distinct() %>% 
   group_by(ethnicity) %>% 
@@ -120,7 +119,6 @@ count_brooklyn <- mwbe_map_brooklyn %>%
     White_Count = sum (ethnicity == "Non-Minority", na.rm = T),
     Black_Count = sum (ethnicity == "Black", na.rm = T),
     Hispanic_Count = sum (ethnicity == "Hispanic", na.rm = T))
-
 count_bronx <- mwbe_map_bronx %>%
   distinct() %>% 
   group_by(ethnicity) %>% 
@@ -130,7 +128,6 @@ count_bronx <- mwbe_map_bronx %>%
     White_Count = sum (ethnicity == "Non-Minority", na.rm = T),
     Black_Count = sum (ethnicity == "Black", na.rm = T),
     Hispanic_Count = sum (ethnicity == "Hispanic", na.rm = T))
-
 count_manhattan <- mwbe_map_manhattan %>%
   distinct() %>% 
   rename("ethnicity" = "ethnicity.x") %>% 
@@ -141,8 +138,6 @@ count_manhattan <- mwbe_map_manhattan %>%
     White_Count = sum (ethnicity == "Non-Minority", na.rm = T),
     Black_Count = sum (ethnicity == "Black", na.rm = T),
     Hispanic_Count = sum (ethnicity == "Hispanic", na.rm = T))
-
-
 count_staten_island <- mwbe_map_staten_island %>%
   distinct() %>% 
   group_by(ethnicity) %>% 
@@ -152,7 +147,6 @@ count_staten_island <- mwbe_map_staten_island %>%
     White_Count = sum (ethnicity == "Non-Minority", na.rm = T),
     Black_Count = sum (ethnicity == "Black", na.rm = T),
     Hispanic_Count = sum (ethnicity == "Hispanic", na.rm = T))
-
 count_queens <- mwbe_map_queens %>%
   distinct() %>% 
   group_by(ethnicity) %>% 
@@ -163,8 +157,9 @@ count_queens <- mwbe_map_queens %>%
     Black_Count = sum (ethnicity == "Black", na.rm = T),
     Hispanic_Count = sum (ethnicity == "Hispanic", na.rm = T))
     
-#Data Analysis: Boroughs by Ethnicity 2 (Combined)
 
+#Data Analysis: Boroughs by Ethnicity 2
+#Counts Borough M/WBEs by ethnicity (a cleaner format)
 count_queens <- mwbe_map_queens %>%
   distinct() %>%
   group_by(ethnicity) %>% 
@@ -173,7 +168,6 @@ count_queens <- mwbe_map_queens %>%
   ) %>%
   filter(ethnicity %in% c("Asian-Pacific", "Asian-Indian", "Non-Minority", "Black", "Hispanic")) %>% 
   mutate(Region = "Queens")
-
 count_bronx <- mwbe_map_bronx %>%
   distinct() %>%
   group_by(ethnicity) %>% 
@@ -182,7 +176,6 @@ count_bronx <- mwbe_map_bronx %>%
   ) %>%
   filter(ethnicity %in% c("Asian-Pacific", "Asian-Indian", "Non-Minority", "Black", "Hispanic")) %>% 
   mutate(Region = "Bronx")
-
 count_manhattan <- mwbe_map_manhattan %>%
   distinct() %>%
   rename(ethnicity = ethnicity.x) %>% 
@@ -192,7 +185,6 @@ count_manhattan <- mwbe_map_manhattan %>%
   ) %>%
   filter(ethnicity %in% c("Asian-Pacific", "Asian-Indian", "Non-Minority", "Black", "Hispanic")) %>% 
   mutate(Region = "Manhattan")
-
 count_brooklyn <- mwbe_map_brooklyn%>%
   distinct() %>%
   group_by(ethnicity) %>% 
@@ -201,7 +193,6 @@ count_brooklyn <- mwbe_map_brooklyn%>%
   ) %>%
   filter(ethnicity %in% c("Asian-Pacific", "Asian-Indian", "Non-Minority", "Black", "Hispanic")) %>% 
   mutate(Region = "Brooklyn")
-
 count_staten_island <- mwbe_map_staten_island %>%
   distinct() %>%
   group_by(ethnicity) %>% 
@@ -210,32 +201,28 @@ count_staten_island <- mwbe_map_staten_island %>%
   ) %>%
   filter(ethnicity %in% c("Asian-Pacific", "Asian-Indian", "Non-Minority", "Black", "Hispanic")) %>% 
   mutate(Region = "Staten Island")
-
-
+#Combines above summaries to a single chart.
 combined_counts <- bind_rows(count_queens, count_bronx, count_manhattan, count_staten_island, count_brooklyn) %>% 
   pivot_wider(names_from = Region, values_from = Count)
-
+#Writes CSV for analysis
 write.csv(combined_counts, "~/Desktop/Data Visualization/Final Assignment/MWBE_Graph_Data_Sources/MWBE_Count.csv")
 
 
 #Data Analysis: Number of Black M/WBEs in predominantly Black Neighborhoods.
-
+#Counts Black M/WBEs in predominantly Black Brooklyn neighborhoods. Neighborhoods/PUMAs are identified in QGIS.
 PUMA_MWBE_BK <- read.csv("~/Desktop/Data Visualization/Final Assignment/MWBE_Graph_Data_Sources/PUMA_MWBE_BK.csv") %>% 
   clean_names() %>% 
   distinct() %>% 
   filter(ethnicity == "Black") %>% 
-  filter(puma %in% c("4009", "4008", "4007", "4010", "4011", "4003", "4006"))
- 
-PUMA_MWBE_BK_2 <- read.csv("~/Desktop/Data Visualization/Final Assignment/MWBE_Graph_Data_Sources/PUMA_MWBE_BK.csv") %>% 
-  clean_names() %>% 
-  distinct() %>% 
-  filter(ethnicity == "Black") %>% 
+  filter(puma %in% c("4009", "4008", "4007", "4010", "4011", "4003", "4006")) %>%
   group_by(puma) %>% 
   summarise(vendor_count = n())
 
+#Data Analysis: Pie chart of all M/WBE ethnicities.
+#Counts the number of rows per ethnicity
 mwbe_clean_locations_nyc_per_race <- mwbe_clean_locations %>% 
   group_by(ethnicity) %>% 
-  summarise(count = n(), .groups = "drop")  # Count the number of rows per ethnicity
+  summarise(count = n(), .groups = "drop")
 
   
 
